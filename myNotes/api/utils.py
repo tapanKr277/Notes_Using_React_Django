@@ -13,7 +13,6 @@ def createNote(request):
 def getNotess(request):
     note = Note.objects.all().order_by('-updated')
     serializer = NoteSerializer(note, many=True)
-    print(note,serializer)
     return Response(serializer.data)
 
 def updateNote(request, pk):
