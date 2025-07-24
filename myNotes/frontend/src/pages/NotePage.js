@@ -4,121 +4,122 @@ import { ReactComponent as ArrowLeft } from "../assets/arrow-left.svg";
 import { toast } from "react-hot-toast";
 
 export const NotePage = () => {
-  const noteId = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [singleNote, setSingleNote] = useState({ body: "" });
   const [loading, setLoading] = useState(false);
 
   const BASE_URL = "https://notes-using-react-django.onrender.com";
 
-  async function apicall() {
-    if (noteId.id === "new") return;
-
-    setLoading(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/notes/${noteId.id}/`);
-      if (!response.ok) throw new Error("Failed to fetch note");
-      const data = await response.json();
-      setSingleNote(data);
-    } catch (error) {
-      toast.error("Failed to load note!");
-      navigate("/");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function fetchNote() {
+      if (id === "new") return;
+      setLoading(true);
+      try {
+        const response = await fetch(`${BASE_URL}/api/notes/${id}/`);
+        if (!response.ok) throw new Error("Failed to fetch note");
+        const data = await response.json();
+        setSingleNote(data);
+      } catch (error) {
+        toast.error("Failed to load note!");
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
 
-  async function updateNote() {
-    setLoading(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/notes/${noteId.id}/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(singleNote),
-      });
-      if (!response.ok) throw new Error("Failed to update note");
-      setLoading(false);
-      toast.success("Updated!");
-    } catch (error) {
-      setLoading(false);
-      toast.error("Failed to update note!");
+    fetchNote();
+  }, [id, navigate]);
+
+  const handleBack = async () => {
+    if (id === "new") {
+      if (singleNote.body) {
+        await createNote();
+        navigate("/", { state: { refresh: true } });
+      } else {
+        navigate("/");
+      }
+    } else {
+      if (singleNote.body === "") {
+        await deleteNote();
+        navigate("/", { state: { refresh: true } });
+      } else {
+        await updateNote();
+        navigate("/", { state: { refresh: true } });
+      }
     }
-  }
+  };
 
-  async function deleteNote() {
-    setLoading(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/notes/${noteId.id}/`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) throw new Error("Failed to delete note");
-      setLoading(false);
-      toast.error("Deleted!");
-      navigate("/");
-    } catch (error) {
-      setLoading(false);
-      toast.error("Failed to delete note!");
-    }
-  }
-
-  async function createNote() {
+  const createNote = async () => {
     setLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/api/notes/`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(singleNote),
       });
-      if (!response.ok) throw new Error("Failed to create note");
-      setLoading(false);
+      if (!response.ok) throw new Error("Create failed");
       toast.success("Created!");
-    } catch (error) {
+    } catch (err) {
+      toast.error("Create failed");
+    } finally {
       setLoading(false);
-      toast.error("Failed to create note!");
     }
-  }
+  };
 
-  useEffect(() => {
-    apicall();
-  }, []);
-
-  function clickHandler() {
-    if (noteId.id !== "new" && singleNote.body === "") {
-      deleteNote();
-    } else {
-      updateNote();
+  const updateNote = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/api/notes/${id}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(singleNote),
+      });
+      if (!response.ok) throw new Error("Update failed");
+      toast.success("Updated!");
+    } catch (err) {
+      toast.error("Update failed");
+    } finally {
+      setLoading(false);
     }
-    navigate("/");
-  }
+  };
 
-  function createHandler() {
-    if (singleNote.body) {
-      createNote();
+  const deleteNote = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/api/notes/${id}/`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Delete failed");
+      toast.error("Deleted!");
+    } catch (err) {
+      toast.error("Delete failed");
+    } finally {
+      setLoading(false);
     }
-    navigate("/");
-  }
+  };
 
-  function changeHandler(e) {
+  const handleChange = (e) => {
     setSingleNote({ ...singleNote, body: e.target.value });
-  }
+  };
 
   return (
     <div className="note">
       <div className="note-header">
         <h3>
-          <ArrowLeft onClick={clickHandler} />
+          <ArrowLeft onClick={handleBack} />
         </h3>
-        {noteId.id !== "new" ? (
-          <button onClick={deleteNote}>Delete</button>
+        {id !== "new" ? (
+          <button
+            onClick={async () => {
+              await deleteNote();
+              navigate("/", { state: { refresh: true } });
+            }}
+          >
+            Delete
+          </button>
         ) : (
-          <button onClick={createHandler}>Done</button>
+          <button onClick={handleBack}>Done</button>
         )}
       </div>
 
@@ -128,7 +129,7 @@ export const NotePage = () => {
         </div>
       ) : (
         <textarea
-          onChange={changeHandler}
+          onChange={handleChange}
           value={singleNote.body || ""}
           placeholder="Type your note here..."
         ></textarea>

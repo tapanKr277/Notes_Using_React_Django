@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom"; // ✅
+import { useLocation } from "react-router-dom";
 import { Card } from "../components/Card";
 import { Spinner } from "../components/Spinner";
 import { AddButton } from "../components/AddButton";
@@ -7,7 +7,7 @@ import { AddButton } from "../components/AddButton";
 export const NotesListPage = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const location = useLocation(); // ✅
+  const location = useLocation();
 
   const BASE_URL = "https://notes-using-react-django.onrender.com";
 
@@ -28,10 +28,8 @@ export const NotesListPage = () => {
   }, []);
 
   useEffect(() => {
-    // ✅ Refetch if navigated with refresh flag
     if (location.state?.refresh) {
       apicall();
-      // remove the state so it doesn't refetch again
       window.history.replaceState({}, document.title); 
     }
   }, [location.state]);
