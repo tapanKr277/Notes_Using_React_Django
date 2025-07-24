@@ -247,3 +247,11 @@ a {
 .note textarea::-webkit-scrollbar {
   display: none;
 }
+
+
+.no-notes-message {
+  text-align: center;
+  color: gray;
+  font-size: 1.1rem;
+  margin: 2rem 0;
+}
