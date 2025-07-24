@@ -2,55 +2,78 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ReactComponent as ArrowLeft } from "../assets/arrow-left.svg";
 import { toast } from "react-hot-toast";
+
 export const NotePage = () => {
   const noteId = useParams();
   const navigate = useNavigate();
-  const [singleNote, setSingleNote] = useState([]);
+  const [singleNote, setSingleNote] = useState({ body: "" });
+  const [loading, setLoading] = useState(false);
+
+  const BASE_URL = "https://notes-using-react-django.onrender.com";
 
   async function apicall() {
-    if (noteId.id === "new") {
-      return;
-    }
+    if (noteId.id === "new") return;
+
+    setLoading(true);
     try {
-      const response = await fetch(`/api/notes/${noteId.id}/`);
+      const response = await fetch(`${BASE_URL}/api/notes/${noteId.id}/`);
+      if (!response.ok) throw new Error("Failed to fetch note");
       const data = await response.json();
       setSingleNote(data);
     } catch (error) {
+      toast.error("Failed to load note!");
       navigate("/");
+    } finally {
+      setLoading(false);
     }
   }
 
   async function updateNote() {
-    await fetch(`/api/notes/${noteId.id}/`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(singleNote),
-    });
-    toast.success("Updated!");
+    try {
+      const response = await fetch(`${BASE_URL}/api/notes/${noteId.id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(singleNote),
+      });
+      if (!response.ok) throw new Error("Failed to update note");
+      toast.success("Updated!");
+    } catch (error) {
+      toast.error("Failed to update note!");
+    }
   }
 
   async function deleteNote() {
-    await fetch(`/api/notes/${noteId.id}/`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    toast.error("Deleted!");
-    navigate("/");
+    try {
+      const response = await fetch(`${BASE_URL}/api/notes/${noteId.id}/`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) throw new Error("Failed to delete note");
+      toast.error("Deleted!");
+      navigate("/");
+    } catch (error) {
+      toast.error("Failed to delete note!");
+    }
   }
 
   async function createNote() {
-    await fetch(`/api/notes/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(singleNote),
-    });
-    toast.success("Created!");
+    try {
+      const response = await fetch(`${BASE_URL}/api/notes/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(singleNote),
+      });
+      if (!response.ok) throw new Error("Failed to create note");
+      toast.success("Created!");
+    } catch (error) {
+      toast.error("Failed to create note!");
+    }
   }
 
   useEffect(() => {
@@ -73,7 +96,7 @@ export const NotePage = () => {
     navigate("/");
   }
 
-  function changeHandel(e) {
+  function changeHandler(e) {
     setSingleNote({ ...singleNote, body: e.target.value });
   }
 
@@ -81,7 +104,7 @@ export const NotePage = () => {
     <div className="note">
       <div className="note-header">
         <h3>
-          <ArrowLeft onClick={clickHandler}></ArrowLeft>
+          <ArrowLeft onClick={clickHandler} />
         </h3>
         {noteId.id !== "new" ? (
           <button onClick={deleteNote}>Delete</button>
@@ -89,11 +112,18 @@ export const NotePage = () => {
           <button onClick={createHandler}>Done</button>
         )}
       </div>
-      <textarea
-        onChange={changeHandel}
-        value={singleNote.body || ""}
-        placeholder="Type your note here..."
-      ></textarea>
+
+      {loading ? (
+        <div className="note-loading">
+          <p>Loading...</p>
+        </div>
+      ) : (
+        <textarea
+          onChange={changeHandler}
+          value={singleNote.body || ""}
+          placeholder="Type your note here..."
+        ></textarea>
+      )}
     </div>
   );
 };
