@@ -9,10 +9,12 @@ export const NotesListPage = () => {
   const [loading, setLoading] = useState(true);
   const location = useLocation(); // ✅
 
+  const BASE_URL = "https://notes-using-react-django.onrender.com";
+
   async function apicall() {
     setLoading(true);
     try {
-      const response = await fetch("/api/notes/");
+      const response = await fetch(`${BASE_URL}/api/notes/`);
       const output = await response.json();
       setNotes(output);
     } catch (error) {
