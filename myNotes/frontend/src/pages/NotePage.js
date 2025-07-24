@@ -29,6 +29,7 @@ export const NotePage = () => {
   }
 
   async function updateNote() {
+    setLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/api/notes/${noteId.id}/`, {
         method: "PUT",
@@ -38,13 +39,16 @@ export const NotePage = () => {
         body: JSON.stringify(singleNote),
       });
       if (!response.ok) throw new Error("Failed to update note");
+      setLoading(false);
       toast.success("Updated!");
     } catch (error) {
+      setLoading(false);
       toast.error("Failed to update note!");
     }
   }
 
   async function deleteNote() {
+    setLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/api/notes/${noteId.id}/`, {
         method: "DELETE",
@@ -53,14 +57,17 @@ export const NotePage = () => {
         },
       });
       if (!response.ok) throw new Error("Failed to delete note");
+      setLoading(false);
       toast.error("Deleted!");
       navigate("/");
     } catch (error) {
+      setLoading(false);
       toast.error("Failed to delete note!");
     }
   }
 
   async function createNote() {
+    setLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/api/notes/`, {
         method: "POST",
@@ -70,8 +77,10 @@ export const NotePage = () => {
         body: JSON.stringify(singleNote),
       });
       if (!response.ok) throw new Error("Failed to create note");
+      setLoading(false);
       toast.success("Created!");
     } catch (error) {
+      setLoading(false);
       toast.error("Failed to create note!");
     }
   }
